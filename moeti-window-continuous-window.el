@@ -1,4 +1,4 @@
-;;; moeti-window-contiuous-window.el --- Continuous Editing Experience for Multi Windows  -*- lexical-binding: t; -*-
+;;; moeti-window-continuous-window.el --- Continuous Editing Experience for Multi Windows  -*- lexical-binding: t; -*-
 ;; Copyright (C) 2024 Meow King <mr.meowking@anche.no>
 
 ;; This file is NOT part of Emacs.
@@ -12,7 +12,7 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;; You should have received a copy of the GNU General Public License
+;; You should have received a copy of the GN General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
@@ -64,29 +64,31 @@ WINDOW, START and WINDOWS see `moeti-window-destroy-window-function'."
               (sw-pos (seq-position mws sw)))
     ;; (message "%s %s" swid mws)
     (setq moeti-window-cw-during-sync t)
-    (cl-loop for index from (1- sw-pos) downto 0
-             do
-             (set-window-start
-              (nth index mws)
-              ;; TODO
-              (window-start (nth (1+ index) mws))))
-    (cl-loop for index from (1+ sw-pos) to (1- (length mws))
-             do
-             (let ((prev-window (nth (1- index) mws))
-                   (cur-window (nth index mws)))
-               (set-window-start
-                cur-window
-                ;; (1+ (window-end prev-window t))
-                ;; TODO
-                (with-current-buffer (window-buffer prev-window)
-                  (save-excursion
-                    (goto-char (window-end prev-window t))
-                    (forward-line -3)
-                    (point))))
-               ;; (message "%s: %s" (1+ (window-end prev-window t)) (window-start cur-window))
-               ))
-    (setq moeti-window-cw-during-sync nil)))
+    (unwind-protect
+        (progn
+          (cl-loop for index from (1- sw-pos) downto 0
+                   do
+                   (set-window-start
+                    (nth index mws)
+                    ;; TODO
+                    (window-start (nth (1+ index) mws))))
+          (cl-loop for index from (1+ sw-pos) to (1- (length mws))
+                   do
+                   (let ((prev-window (nth (1- index) mws))
+                         (cur-window (nth index mws)))
+                     (set-window-start
+                      cur-window
+                      ;; (1+ (window-end prev-window t))
+                      ;; TODO
+                      (with-current-buffer (window-buffer prev-window)
+                        (save-excursion
+                          (goto-char (window-end prev-window t))
+                          (forward-line -3)
+                          (point))))
+                     ;; (message "%s: %s" (1+ (window-end prev-window t)) (window-start cur-window))
+                     )))
+      (setq moeti-window-cw-during-sync nil))))
 
-(provide 'moeti-window-contiuous-window)
+(provide 'moeti-window-continuous-window)
 
-;;; moeti-window-sync-window.el ends here
+;;; moeti-window-continuous-window.el ends here

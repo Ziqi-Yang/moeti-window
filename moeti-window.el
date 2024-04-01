@@ -37,7 +37,7 @@
 (require 'moeti-window-defaults)
 (require 'moeti-window-basic-window)
 (require 'moeti-window-sync-window)
-(require 'moeti-window-contiuous-window)
+(require 'moeti-window-continuous-window)
 
 (defconst moeti-window-version "0.1.0")
 

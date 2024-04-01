@@ -64,17 +64,19 @@ WINDOW, START and WINDOWS see `moeti-window-destroy-window-function'."
               (sw-pos (seq-position mws sw)))
     ;; (message "%s %s" swid mws)
     (setq moeti-window-sw-during-sync t)
-    (cl-loop for index from (1- sw-pos) downto 0
-             do
-             (set-window-start
-              (nth index mws)
-              (window-start (nth (1+ index) mws))))
-    (cl-loop for index from (1+ sw-pos) to (1- (length mws))
-             do
-             (set-window-start
-              (nth index mws)
-              (window-start (nth (1- index) mws))))
-    (setq moeti-window-sw-during-sync nil)))
+    (unwind-protect
+        (progn
+          (cl-loop for index from (1- sw-pos) downto 0
+                   do
+                   (set-window-start
+                    (nth index mws)
+                    (window-start (nth (1+ index) mws))))
+          (cl-loop for index from (1+ sw-pos) to (1- (length mws))
+                   do
+                   (set-window-start
+                    (nth index mws)
+                    (window-start (nth (1- index) mws)))))
+      (setq moeti-window-sw-during-sync nil))))
 
 (provide 'moeti-window-sync-window)
 

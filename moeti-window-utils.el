@@ -62,7 +62,9 @@ If ID is non-nil, then exclude that moeti-window id."
   (seq-filter
    (if id
        (lambda (w)
-         (not (equal (moeti-window-get-id w) id)))
+         (let (mid)
+           (setq mid (moeti-window-get-id w))
+           (and mid (not (equal mid id)))))
      (lambda (w) (moeti-window-p w)))
    windows))
 
