@@ -67,9 +67,11 @@ START: the new window start position."
   (if moeti-window-mode
       (progn
         (add-hook 'window-scroll-functions 'moeti-window-scroll-function)
+        (advice-add 'pixel-scroll-precision ':after 'moeti-window-pixel-scroll-function)
         ;; TODO emacs 29.1
         (advice-add 'pixel-scroll-precision-interpolate ':after 'moeti-window-pixel-scroll-function))
     (remove-hook 'window-scroll-functions 'moeti-window-scroll-function)
+    (advice-remove 'pixel-scroll-precision 'moeti-window-pixel-scroll-function)
     (advice-remove 'pixel-scroll-precision-interpolate 'moeti-window-pixel-scroll-function)))
 
 (provide 'moeti-window)

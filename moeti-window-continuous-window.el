@@ -26,24 +26,31 @@
 (defvar moeti-window-cw-during-sync nil
   "TODO.")
 
+(defvar moeti-window-cw-during-main nil
+  "TODO.")
+
 (defun moeti-window-cw-main (windows window start)
   "TODO.
 WINDOWS, WINDOW, START see `moeti-window-action-state-function'."
-  (let ((ob (window-old-buffer window))
-        (sw (selected-window)))
-    ;; (message "#main function called: %s - %s - %s" windows window ob)
-    (cond
-     ((booleanp ob)  ; new window is created
-      (unless (or moeti-window-during-window-creation (moeti-window-p window))
-        (message "#moeti-window-cw-destory function called")
-        (moeti-window-cw-destory windows)))
-     ((and (length= windows 1) (not moeti-window-during-window-creation))
-      (moeti-window-mark window 0)
-      (message "#moeti-window-cw-create function called")
-      (moeti-window-cw-create windows))
-     ((and (not moeti-window-cw-during-sync) (eq sw window))
-      (message "#moeti-window-cw-sync function called")
-      (moeti-window-cw-sync windows start)))))
+  (unless moeti-window-cw-during-main
+    (setq moeti-window-cw-during-main t)
+    (unwind-protect
+        (let ((ob (window-old-buffer window))
+              (sw (selected-window)))
+          ;; (message "#main function called: %s - %s - %s" windows window ob)
+          (cond
+           ((booleanp ob)  ; new window is created
+            (unless (or moeti-window-during-window-creation (moeti-window-p window))
+              ;; (message "#moeti-window-cw-destory function called")
+              (moeti-window-cw-destory windows)))
+           ((and (length= windows 1) (not moeti-window-during-window-creation))
+            (moeti-window-mark window 0)
+            ;; (message "#moeti-window-cw-create function called")
+            (moeti-window-cw-create windows))
+           ((and (not moeti-window-cw-during-sync) (eq sw window))
+            ;; (message "#moeti-window-cw-sync function called")
+            (moeti-window-cw-sync windows start))))
+      (setq moeti-window-cw-during-main nil))))
 
 (defun moeti-window-cw-create (windows)
   "Create second window used that continues the content of first window.
@@ -71,6 +78,13 @@ WINDOW, START and WINDOWS see `moeti-window-destroy-window-function'."
       (forward-line (1- (window-text-height window)))
       (point))))
 
+(defun moeti-window-cw--sync-buffer (cur-window target-window)
+  "TODO."
+  (let ((cur-buffer (window-buffer cur-window))
+        (target-buffer (window-buffer target-window)))
+    (unless (eq cur-buffer target-buffer)
+      (set-window-buffer cur-window target-buffer))))
+
 (defun moeti-window-cw-sync (windows selected-start)
   "TODO."
   (when-let* ((sw (selected-window))
@@ -78,7 +92,6 @@ WINDOW, START and WINDOWS see `moeti-window-destroy-window-function'."
               (mws (moeti-window-filter windows))
               (mws (seq-sort-by (lambda (w) (moeti-window-get-id w)) #'< mws))
               (sw-pos (seq-position mws sw)))
-    ;; (message "%s %s" swid mws)
     (setq moeti-window-cw-during-sync t)
     (unwind-protect
         (progn
@@ -86,6 +99,7 @@ WINDOW, START and WINDOWS see `moeti-window-destroy-window-function'."
                    do
                    (let ((next-window (nth (1+ index) mws))
                          (cur-window (nth index mws)))
+                     (moeti-window-cw--sync-buffer cur-window next-window)
                      (set-window-start
                       cur-window
                       (moeti-window-cw--calc-start-pos next-window (window-start next-window)))))
@@ -93,23 +107,14 @@ WINDOW, START and WINDOWS see `moeti-window-destroy-window-function'."
                    do
                    (let ((prev-window (nth (1- index) mws))
                          (cur-window (nth index mws)))
+                     (moeti-window-cw--sync-buffer cur-window prev-window)
                      (set-window-start
                       cur-window
-                      ;; (1+ (window-end prev-window t))
-                      ;; TODO
                       (moeti-window-cw--calc-start-pos-from-prev-start
                        prev-window
                        (if (= (1- index) sw-pos)
                            selected-start
-                         (window-start prev-window)))
-                      ;; (with-current-buffer (window-buffer prev-window)
-                      ;;   (save-excursion
-                      ;;     (goto-char (window-end prev-window t))
-                      ;;     (forward-line -2)
-                      ;;     (point)))
-                      )
-                     ;; (message "%s: %s" (1+ (window-end prev-window t)) (window-start cur-window))
-                     )))
+                         (window-start prev-window)))))))
       (setq moeti-window-cw-during-sync nil))))
 
 (provide 'moeti-window-continuous-window)
