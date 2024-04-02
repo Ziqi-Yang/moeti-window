@@ -38,12 +38,15 @@ and `moeti-window-exclude-window-predicate-derived-modes-list'."
 
 (defun moeti-window-default-create-window (windows &rest _)
   "TODO.  SELECTED WINDOWS."
+  ;; TODO how to restore window? will restored window still have moeti-window id?
   (let* ((max-id (or (car (moeti-window-max-id windows)) -1))
          w)
     (setq moeti-window-during-window-creation t)
-    (setq w (moeti-window-mark (split-window-right) (1+ max-id)))
-    (balance-windows)
-    (setq moeti-window-during-window-creation nil)
+    (unwind-protect
+        (progn
+          (setq w (moeti-window-mark (split-window-right) (1+ max-id)))
+          (balance-windows))
+      (setq moeti-window-during-window-creation nil))
     (list w)))
 
 (defun moeti-window-default-destory-window (windows selected)

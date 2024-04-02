@@ -54,6 +54,10 @@ START: the new window start position."
     (when (memq window windows)
       (funcall moeti-window-main-function windows window start))))
 
+(defun moeti-window-pixel-scroll-function (&rest _)
+  (let ((sw (selected-window)))
+    (moeti-window-scroll-function sw (window-start sw))))
+
 (define-minor-mode moeti-window-mode
   "El Psy Congroo."
   :global t
@@ -61,8 +65,12 @@ START: the new window start position."
   :lighter " Moeti"
   :group 'moeti-window
   (if moeti-window-mode
-      (add-hook 'window-scroll-functions 'moeti-window-scroll-function)
-    (remove-hook 'window-scroll-functions 'moeti-window-scroll-function)))
+      (progn
+        (add-hook 'window-scroll-functions 'moeti-window-scroll-function)
+        ;; TODO emacs 29.1
+        (advice-add 'pixel-scroll-precision-interpolate ':after 'moeti-window-pixel-scroll-function))
+    (remove-hook 'window-scroll-functions 'moeti-window-scroll-function)
+    (advice-remove 'pixel-scroll-precision-interpolate 'moeti-window-pixel-scroll-function)))
 
 (provide 'moeti-window)
 

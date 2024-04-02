@@ -34,7 +34,7 @@ The excluded windows will not be regarded as an judgment criteria for function
   :group 'moeti-window)
 
 (defcustom moeti-window-exclude-window-predicate-buffer-name-regexps
-  '("^\\*Messages\\*$")
+  '("^\\*.*\\*$")
   "A list of regular expressions used for check whether a window is excluded."
   :type '(list string)
   :group 'moeti-window)
